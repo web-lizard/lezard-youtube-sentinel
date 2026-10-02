@@ -1,0 +1,31 @@
+.ls-comment-veiled {
+  position: relative !important;
+  min-height: 2.8em !important;
+  overflow: hidden !important;
+  color: transparent !important;
+  text-shadow: none !important;
+  user-select: none !important;
+}
+.ls-comment-veiled::after {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #9ca79e;
+  background: linear-gradient(90deg, #1a211c, #252e27, #1a211c);
+  background-size: 200% 100%;
+  content: "Lizard Sentinel проверяет комментарий…";
+  animation: ls-scan 1.6s linear infinite;
+}
+.ls-comment-shielded {
+  display: inline-block !important;
+  border: 1px solid rgba(132, 226, 44, .35);
+  border-radius: 8px;
+  padding: 6px 9px !important;
+  color: #b9ed8a !important;
+  background: rgba(67, 103, 38, .18);
+  font-style: italic;
+}
+@keyframes ls-scan { to { background-position: -200% 0; } }

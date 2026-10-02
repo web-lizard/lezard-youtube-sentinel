@@ -1,0 +1,11 @@
+node_modules/
+dist/
+artifacts/
+*.xpi
+*.zip
+.env
+.env.*
+!.env.example
+web-ext-artifacts/
+coverage/
+*.log

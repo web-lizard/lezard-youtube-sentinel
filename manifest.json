@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Lizard Sentinel",
+  "version": "0.1.0",
+  "description": "Безопасная AI-обработка комментариев YouTube с Shield Mode и dry-run по умолчанию.",
+  "permissions": ["storage", "alarms", "tabs", "activeTab"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://studio.youtube.com/*",
+    "https://api.deepseek.com/*",
+    "https://www.googleapis.com/youtube/v3/*"
+  ],
+  "optional_host_permissions": ["https://*/*"],
+  "background": {
+    "scripts": ["background.js"],
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Lizard Sentinel",
+    "default_popup": "popup.html",
+    "default_icon": "icons/lizard.svg"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://studio.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/lizard.svg",
+    "32": "icons/lizard.svg",
+    "48": "icons/lizard.svg",
+    "96": "icons/lizard.svg",
+    "128": "icons/lizard.svg"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "lizard-sentinel@web-lizard.local",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"],
+        "optional": ["personalCommunications"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  }
+}
