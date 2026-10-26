@@ -3,7 +3,8 @@ import { mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "n
 import { relative, resolve } from "node:path";
 
 const root = resolve("dist");
-const output = resolve("artifacts/lizard-sentinel-0.1.0.zip");
+const packageJson = JSON.parse(readFileSync(resolve("package.json"), "utf8"));
+const output = resolve(`artifacts/lizard-sentinel-${packageJson.version}.zip`);
 const files = {};
 function visit(directory) {
   for (const name of readdirSync(directory)) {

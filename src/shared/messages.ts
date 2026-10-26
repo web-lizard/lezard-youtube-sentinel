@@ -11,6 +11,7 @@ export const MSG = {
   COLLECT: "LS_COLLECT",
   REPLY: "LS_REPLY",
   APPLY_VERDICT: "LS_APPLY_VERDICT",
+  GET_TRANSCRIPT: "LS_GET_TRANSCRIPT",
   PING: "LS_PING",
 } as const;
 
@@ -20,6 +21,7 @@ export type BackgroundMessage =
   | { type: typeof MSG.START_AUTO }
   | { type: typeof MSG.PAUSE }
   | { type: typeof MSG.RUN_MOCK }
+  | { type: typeof MSG.GET_TRANSCRIPT }
   | { type: typeof MSG.SAVE_SETTINGS; settings: AppSettings }
   | { type: typeof MSG.TEST_AI; settings: AppSettings };
 
@@ -27,6 +29,7 @@ export type ContentMessage =
   | { type: typeof MSG.COLLECT }
   | { type: typeof MSG.REPLY; commentId: string; reply: string; allowRealReplies: boolean }
   | { type: typeof MSG.APPLY_VERDICT; commentId: string; shielded: boolean; summary?: string }
+  | { type: typeof MSG.GET_TRANSCRIPT }
   | { type: typeof MSG.PING };
 
 export type ApiResponse<T = undefined> =
@@ -36,3 +39,4 @@ export type ApiResponse<T = undefined> =
 export type DashboardResponse = ApiResponse<DashboardData>;
 export type CollectResponse = ApiResponse<{ comments: Comment[]; page: string }>;
 export type ReplyResponse = ApiResponse<{ sent: boolean; dryRun: boolean }>;
+export type TranscriptResponse = ApiResponse<{ title: string; videoId: string; url: string; segmentCount: number; text: string }>;

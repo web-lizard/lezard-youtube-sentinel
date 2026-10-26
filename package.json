@@ -1,6 +1,6 @@
 {
   "name": "lizard-youtube-sentinel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Firefox WebExtension for safe, AI-assisted YouTube comment workflows",
   "private": true,
   "type": "module",
@@ -27,6 +27,7 @@
     "fflate": "^0.8.2",
     "jsdom": "^26.1.0",
     "typescript": "^5.8.3",
+    "vite": "^8.3.5",
     "vitest": "^5.0.3"
   }
 }

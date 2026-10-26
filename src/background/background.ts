@@ -4,7 +4,7 @@ import { CommentProcessor, type ReplyTransport } from "../core/comment-processor
 import { CommentCollector } from "../core/comment-collector";
 import type { AppSettings, Comment, ProcessedComment, RuntimeState, Stats } from "../core/models";
 import { mockComments } from "../mock/comments";
-import { MSG, type BackgroundMessage, type CollectResponse, type ReplyResponse } from "../shared/messages";
+import { MSG, type BackgroundMessage, type CollectResponse, type ReplyResponse, type TranscriptResponse } from "../shared/messages";
 import { logEntry, safeConsole, safeError } from "../shared/logger";
 import { StorageRepository } from "../storage/repository";
 
@@ -172,6 +172,13 @@ browser.runtime.onMessage.addListener(async (raw: unknown) => {
     if (message.type === MSG.GET_DASHBOARD) {
       const settings = await storage.getSettings();
       return { ok: true, data: await storage.dashboard(settings.ai.provider === "mock" || Boolean(settings.ai.apiKey)) };
+    }
+    if (message.type === MSG.GET_TRANSCRIPT) {
+      const tab = await activeYoutubeTab();
+      if (!tab) throw new Error("Откройте нужное видео YouTube в активной вкладке.");
+      const response = await browser.tabs.sendMessage<TranscriptResponse>(tab.id, { type: MSG.GET_TRANSCRIPT });
+      if (!response.ok) throw new Error(response.error);
+      return response;
     }
     if (message.type === MSG.SCAN_NOW) { void scan(); return { ok: true, data: undefined }; }
     if (message.type === MSG.RUN_MOCK) { void runMock(); return { ok: true, data: undefined }; }

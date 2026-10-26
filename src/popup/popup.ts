@@ -1,11 +1,12 @@
 import type { DashboardData } from "../core/models";
-import { MSG, type ApiResponse, type DashboardResponse } from "../shared/messages";
+import { MSG, type ApiResponse, type DashboardResponse, type TranscriptResponse } from "../shared/messages";
 import "../ui/theme.css";
 import "./popup.css";
 
 const app = document.querySelector<HTMLElement>("#app")!;
 let data: DashboardData | null = null;
 let error = "";
+let transcriptStatus = "";
 let timer = 0;
 
 function replaceMarkup(markup: string): void {
@@ -40,6 +41,14 @@ function render(): void {
         <div><span class="status-dot ${data.aiConnected ? "status-dot--ok" : ""}"></span><p><b>AI · ${escapeHtml(data.settings.ai.provider === "mock" ? "Mock" : data.settings.ai.model)}</b><small>${data.aiConnected ? "Connected" : "Not connected"}</small></p></div>
         <div><span class="status-dot ${busy ? "status-dot--busy" : ""}"></span><p><b>Статус</b><small>${modeLabel(data.state.mode)}${data.state.queueSize ? ` · в очереди ${data.state.queueSize}` : ""}</small></p></div>
       </div>
+      <section class="card transcript">
+        <div><b>Расшифровка видео</b><small>Берётся из вашей открытой сессии YouTube</small></div>
+        <div class="transcript__actions">
+          <button class="button button--primary" data-action="copy-transcript">Скопировать текст</button>
+          <button class="button" data-action="save-transcript">Скачать .txt</button>
+        </div>
+        ${transcriptStatus ? `<p>${escapeHtml(transcriptStatus)}</p>` : ""}
+      </section>
       <div class="actions">
         <button class="button button--primary" data-action="scan" ${busy ? "disabled" : ""}>Сканировать сейчас</button>
         <button class="button" data-action="auto" ${data.state.mode === "auto" ? "disabled" : ""}>Запустить автоответы</button>
@@ -73,9 +82,52 @@ async function command(type: string): Promise<void> {
   await load();
 }
 
+async function getTranscript(): Promise<Extract<TranscriptResponse, { ok: true }>["data"]> {
+  const response = await browser.runtime.sendMessage<TranscriptResponse>({ type: MSG.GET_TRANSCRIPT });
+  if (!response.ok) throw new Error(response.error);
+  return response.data;
+}
+
+async function copyText(value: string): Promise<void> {
+  await navigator.clipboard.writeText(value);
+}
+
+function safeFilename(title: string): string {
+  const cleaned = title.replace(/[<>:"/\\|?*\u0000-\u001f]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+  return `${cleaned || "youtube-transcript"}.txt`;
+}
+
+async function transcriptCommand(download: boolean): Promise<void> {
+  error = "";
+  transcriptStatus = "Получаю расшифровку…";
+  render();
+  try {
+    const transcript = await getTranscript();
+    if (download) {
+      const blob = new Blob([transcript.text], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = safeFilename(transcript.title);
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      transcriptStatus = `Скачано: ${transcript.segmentCount} фрагментов.`;
+    } else {
+      await copyText(transcript.text);
+      transcriptStatus = `Скопировано: ${transcript.segmentCount} фрагментов.`;
+    }
+  } catch (reason) {
+    transcriptStatus = "";
+    error = reason instanceof Error ? reason.message : String(reason);
+  }
+  render();
+}
+
 app.addEventListener("click", (event) => {
   const action = (event.target as HTMLElement).closest<HTMLElement>("[data-action]")?.dataset.action;
   if (action === "options") void browser.runtime.openOptionsPage();
+  else if (action === "copy-transcript") void transcriptCommand(false);
+  else if (action === "save-transcript") void transcriptCommand(true);
   else if (action === "scan") void command(MSG.SCAN_NOW);
   else if (action === "auto") void command(MSG.START_AUTO);
   else if (action === "pause") void command(MSG.PAUSE);

@@ -13,6 +13,12 @@ body { width: 420px; min-height: 590px; }
 .connections b { font-size: 12px; }
 .connections small { overflow: hidden; max-width: 210px; color: #8e9a90; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 11px; }
+.transcript { margin-top: 11px; padding: 12px; border-color: rgba(130, 223, 40, .35); }
+.transcript > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.transcript b { font-size: 12px; }
+.transcript small { color: #879389; font-size: 9px; }
+.transcript__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.transcript p { margin: 9px 0 0; color: #b9e78d; font-size: 10px; }
 .metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 13px 0; }
 .metrics div { border: 1px solid #2a362e; border-radius: 11px; padding: 8px 4px; text-align: center; background: #141b16; }
 .metrics strong, .metrics span { display: block; }

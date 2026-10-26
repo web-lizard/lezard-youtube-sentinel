@@ -1,5 +1,6 @@
 import { MSG, type ContentMessage } from "../shared/messages";
 import { YouTubeDomAdapter, installCommentVeil } from "./dom-youtube-adapter";
+import { collectTranscript } from "./transcript-extractor";
 import "./content.css";
 
 const adapter = new YouTubeDomAdapter();
@@ -18,6 +19,19 @@ browser.runtime.onMessage.addListener(async (raw: unknown) => {
     const comments = await adapter.collect();
     comments.forEach((comment) => cached.set(comment.id, comment));
     return { ok: true, data: { comments, page: location.href } };
+  }
+  if (message.type === MSG.GET_TRANSCRIPT) {
+    const transcript = await collectTranscript();
+    return {
+      ok: true,
+      data: {
+        title: transcript.title,
+        videoId: transcript.videoId,
+        url: transcript.url,
+        segmentCount: transcript.segments.length,
+        text: transcript.text,
+      },
+    };
   }
   if (message.type === MSG.APPLY_VERDICT) {
     adapter.applyVerdict(message.commentId, message.shielded, message.summary);
