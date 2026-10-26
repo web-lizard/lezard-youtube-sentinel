@@ -34,6 +34,30 @@ async function activeYoutubeTab(): Promise<{ id: number; url: string } | null> {
   return tab?.id && tab.url ? { id: tab.id, url: tab.url } : null;
 }
 
+function youtubeVideoId(value: string): string {
+  try {
+    const url = new URL(value);
+    if (url.hostname === "youtu.be") return url.pathname.split("/").filter(Boolean)[0] ?? "";
+    return url.searchParams.get("v") ?? "";
+  } catch {
+    return "";
+  }
+}
+
+async function youtubeTabForUrl(videoUrl: string): Promise<{ id: number; url: string } | null> {
+  const requestedId = youtubeVideoId(videoUrl);
+  if (!requestedId) return null;
+  const tabs = await browser.tabs.query({});
+  const tab = tabs.find((item) => item.id && item.url && youtubeVideoId(item.url) === requestedId);
+  return tab?.id && tab.url ? { id: tab.id, url: tab.url } : null;
+}
+
+async function transcriptFromTab(tab: { id: number }): Promise<TranscriptResponse> {
+  const response = await browser.tabs.sendMessage<TranscriptResponse>(tab.id, { type: MSG.GET_TRANSCRIPT });
+  if (!response.ok) throw new Error(response.error);
+  return response;
+}
+
 function domTransport(tabId: number): ReplyTransport {
   return {
     async applyVerdict(commentId, shielded, summary) {
@@ -176,9 +200,12 @@ browser.runtime.onMessage.addListener(async (raw: unknown) => {
     if (message.type === MSG.GET_TRANSCRIPT) {
       const tab = await activeYoutubeTab();
       if (!tab) throw new Error("Откройте нужное видео YouTube в активной вкладке.");
-      const response = await browser.tabs.sendMessage<TranscriptResponse>(tab.id, { type: MSG.GET_TRANSCRIPT });
-      if (!response.ok) throw new Error(response.error);
-      return response;
+      return transcriptFromTab(tab);
+    }
+    if (message.type === MSG.GET_TRANSCRIPT_FOR_URL) {
+      const tab = await youtubeTabForUrl(message.videoUrl);
+      if (!tab) throw new Error("Откройте этот ролик YouTube в соседней вкладке и оставьте её открытой.");
+      return transcriptFromTab(tab);
     }
     if (message.type === MSG.SCAN_NOW) { void scan(); return { ok: true, data: undefined }; }
     if (message.type === MSG.RUN_MOCK) { void runMock(); return { ok: true, data: undefined }; }

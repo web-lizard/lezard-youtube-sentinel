@@ -7,6 +7,7 @@
   "host_permissions": [
     "https://www.youtube.com/*",
     "https://studio.youtube.com/*",
+    "https://cv038824.tw1.ru/*",
     "https://api.deepseek.com/*",
     "https://www.googleapis.com/youtube/v3/*"
   ],
@@ -26,7 +27,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.youtube.com/*", "https://studio.youtube.com/*"],
+      "matches": ["https://www.youtube.com/*", "https://studio.youtube.com/*", "https://cv038824.tw1.ru/youtube-transcript/*"],
       "js": ["content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"

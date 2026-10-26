@@ -6,6 +6,7 @@ import "./content.css";
 const adapter = new YouTubeDomAdapter();
 let observer: MutationObserver | null = null;
 const cached = new Map<string, Awaited<ReturnType<YouTubeDomAdapter["collect"]>>[number]>();
+const isYoutubePage = /(^|\.)youtube\.com$/i.test(location.hostname);
 
 function ensureVeil(): void {
   observer ??= installCommentVeil();
@@ -29,6 +30,7 @@ browser.runtime.onMessage.addListener(async (raw: unknown) => {
         videoId: transcript.videoId,
         url: transcript.url,
         segmentCount: transcript.segments.length,
+        segments: transcript.segments,
         text: transcript.text,
       },
     };
@@ -45,7 +47,28 @@ browser.runtime.onMessage.addListener(async (raw: unknown) => {
   return undefined;
 });
 
-void browser.runtime.sendMessage<{ ok: boolean; data?: { state?: { mode?: string } } }>({ type: MSG.GET_DASHBOARD })
+if (!isYoutubePage && location.hostname === "cv038824.tw1.ru" && location.pathname.startsWith("/youtube-transcript/")) {
+  window.addEventListener("message", (event: MessageEvent) => {
+    if (event.source !== window || event.origin !== location.origin) return;
+    const request = event.data as { source?: string; type?: string; requestId?: string; videoUrl?: string };
+    if (request.source !== "LIZARD_TRANSCRIPT_PAGE" || request.type !== "REQUEST_TRANSCRIPT" || !request.requestId || !request.videoUrl) return;
+    void browser.runtime.sendMessage({ type: MSG.GET_TRANSCRIPT_FOR_URL, videoUrl: request.videoUrl })
+      .then((response) => window.postMessage({
+        source: "LIZARD_TRANSCRIPT_EXTENSION",
+        type: "TRANSCRIPT_RESPONSE",
+        requestId: request.requestId,
+        response,
+      }, location.origin))
+      .catch((reason) => window.postMessage({
+        source: "LIZARD_TRANSCRIPT_EXTENSION",
+        type: "TRANSCRIPT_RESPONSE",
+        requestId: request.requestId,
+        response: { ok: false, error: reason instanceof Error ? reason.message : String(reason) },
+      }, location.origin));
+  });
+}
+
+if (isYoutubePage) void browser.runtime.sendMessage<{ ok: boolean; data?: { state?: { mode?: string } } }>({ type: MSG.GET_DASHBOARD })
   .then((response) => {
     if (response.ok && response.data?.state?.mode === "auto") {
       ensureVeil();

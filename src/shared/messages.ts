@@ -12,6 +12,7 @@ export const MSG = {
   REPLY: "LS_REPLY",
   APPLY_VERDICT: "LS_APPLY_VERDICT",
   GET_TRANSCRIPT: "LS_GET_TRANSCRIPT",
+  GET_TRANSCRIPT_FOR_URL: "LS_GET_TRANSCRIPT_FOR_URL",
   PING: "LS_PING",
 } as const;
 
@@ -22,6 +23,7 @@ export type BackgroundMessage =
   | { type: typeof MSG.PAUSE }
   | { type: typeof MSG.RUN_MOCK }
   | { type: typeof MSG.GET_TRANSCRIPT }
+  | { type: typeof MSG.GET_TRANSCRIPT_FOR_URL; videoUrl: string }
   | { type: typeof MSG.SAVE_SETTINGS; settings: AppSettings }
   | { type: typeof MSG.TEST_AI; settings: AppSettings };
 
@@ -39,4 +41,11 @@ export type ApiResponse<T = undefined> =
 export type DashboardResponse = ApiResponse<DashboardData>;
 export type CollectResponse = ApiResponse<{ comments: Comment[]; page: string }>;
 export type ReplyResponse = ApiResponse<{ sent: boolean; dryRun: boolean }>;
-export type TranscriptResponse = ApiResponse<{ title: string; videoId: string; url: string; segmentCount: number; text: string }>;
+export type TranscriptResponse = ApiResponse<{
+  title: string;
+  videoId: string;
+  url: string;
+  segmentCount: number;
+  segments: Array<{ timestamp: string; text: string }>;
+  text: string;
+}>;
